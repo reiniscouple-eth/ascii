@@ -32,8 +32,10 @@
         top: 10px;
         left: 10px;
         z-index: 100;
+        display: flex;
+        gap: 10px;
       }
-      #controls button {
+      #controls button, #controls select {
         margin: 5px;
         padding: 10px;
         font-size: 14px;
@@ -47,6 +49,7 @@
 </head>
 <body>
     <div id="controls">
+        <select id="cameraSelect"></select>
         <button id="saveAsciiArt">Save ASCII Art</button>
     </div>
     <main id="ascii-art"></main>
@@ -56,16 +59,51 @@
       const ASPECT_RATIO = 2;
       let video;
       let asciiDiv;
+      let selectedDeviceId = null;
+
+      async function getCameraDevices() {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        const cameraSelect = document.getElementById('cameraSelect');
+        cameraSelect.innerHTML = '';
+        videoDevices.forEach((device, index) => {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          option.text = device.label || `Camera ${index + 1}`;
+          cameraSelect.appendChild(option);
+        });
+
+        if (videoDevices.length > 0) {
+          selectedDeviceId = videoDevices[0].deviceId;
+          cameraSelect.addEventListener('change', (event) => {
+            selectedDeviceId = event.target.value;
+            initializeCamera();
+          });
+        }
+      }
+
+      async function initializeCamera() {
+        if (video) video.remove();
+
+        const constraints = {
+          video: {
+            deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined
+          }
+        };
+
+        video = createCapture(constraints, () => {
+          video.size(floor(windowWidth / (FONT_SIZE / ASPECT_RATIO)), floor(windowHeight / FONT_SIZE));
+        });
+
+        video.hide();
+      }
 
       function setup() {
         noCanvas();
         asciiDiv = document.getElementById('ascii-art');
 
-        // Initialize video capture
-        video = createCapture(VIDEO, () => {
-          video.size(floor(windowWidth / (FONT_SIZE / ASPECT_RATIO)), floor(windowHeight / FONT_SIZE));
-        });
-        video.hide();
+        getCameraDevices();
+        initializeCamera();
 
         document.getElementById('saveAsciiArt').addEventListener('click', saveAsciiArt);
 
@@ -116,6 +154,8 @@
           console.error('Error saving ASCII art:', error);
         });
       }
+
+      setup();
     </script>
 </body>
 </html>
