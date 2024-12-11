@@ -3,32 +3,37 @@
 <head>
     <title>YOU by Reiniscouple</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.1/p5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.1/addons/p5.sound.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#000000">
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
-
     <style>
       html, body {
         margin: 0;
         padding: 0;
         font-family: monospace;
-        background: linear-gradient(135deg, #000, #222);
+        background-color: #000;
         color: #fff;
       }
-      canvas {
-        display: block;
+      #ascii-art {
+        font-family: monospace;
+        font-size: 8px;
+        color: #fff;
+        background-color: #000;
+        line-height: 1;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-      .controls {
-        position: absolute;
+      #controls {
+        position: fixed;
         top: 10px;
         left: 10px;
-        z-index: 10;
+        z-index: 100;
       }
-      .controls select {
+      #controls button {
         margin: 5px;
         padding: 10px;
         font-size: 14px;
@@ -41,78 +46,28 @@
     </style>
 </head>
 <body>
-    <div class="controls">
-        <select id="cameraSelect"></select>
+    <div id="controls">
+        <button id="saveAsciiArt">Save ASCII Art</button>
     </div>
-
     <main id="ascii-art"></main>
-
     <script>
       const density = ' .:-=+*#%@█';
       const FONT_SIZE = 8;
       const ASPECT_RATIO = 2;
       let video;
       let asciiDiv;
-      let selectedDeviceId = null;
-
-      async function getCameraDevices() {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        const cameraSelect = document.getElementById('cameraSelect');
-        cameraSelect.innerHTML = '';
-        videoDevices.forEach((device, index) => {
-          const option = document.createElement('option');
-          option.value = device.deviceId;
-          option.text = device.label || `Camera ${index + 1}`;
-          cameraSelect.appendChild(option);
-        });
-
-        if (videoDevices.length > 0) {
-          selectedDeviceId = videoDevices[0].deviceId;
-          cameraSelect.addEventListener('change', (event) => {
-            selectedDeviceId = event.target.value;
-            initializeCamera();
-          });
-        }
-      }
-
-      async function initializeCamera() {
-        if (video) video.remove();
-
-        const constraints = {
-          video: {
-            deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined
-          }
-        };
-
-        video = createCapture(constraints, () => {
-          video.size(floor(windowWidth / (FONT_SIZE / ASPECT_RATIO)), floor(windowHeight / FONT_SIZE));
-        });
-
-        video.hide();
-      }
 
       function setup() {
         noCanvas();
+        asciiDiv = document.getElementById('ascii-art');
 
-        asciiDiv = createDiv();
-        asciiDiv.style('font-family', 'monospace');
-        asciiDiv.style('font-size', `${FONT_SIZE}px`);
-        asciiDiv.style('color', '#fff');
-        asciiDiv.style('line-height', '1');
-        asciiDiv.style('position', 'fixed');
-        asciiDiv.style('top', '0');
-        asciiDiv.style('left', '0');
-        asciiDiv.style('width', '100vw');
-        asciiDiv.style('height', '100vh');
-        asciiDiv.style('overflow', 'hidden');
-        asciiDiv.style('background', 'linear-gradient(135deg, #000, #222)');
-        asciiDiv.id('ascii-art');
+        // Initialize video capture
+        video = createCapture(VIDEO, () => {
+          video.size(floor(windowWidth / (FONT_SIZE / ASPECT_RATIO)), floor(windowHeight / FONT_SIZE));
+        });
+        video.hide();
 
-        asciiDiv.mousePressed(saveAsciiArt);
-
-        getCameraDevices();
-        initializeCamera();
+        document.getElementById('saveAsciiArt').addEventListener('click', saveAsciiArt);
 
         window.addEventListener('resize', calculateResolution);
       }
@@ -138,7 +93,7 @@
           asciiImage += '<br/>';
         }
 
-        asciiDiv.html(asciiImage);
+        asciiDiv.innerHTML = asciiImage;
       }
 
       function calculateResolution() {
@@ -150,21 +105,17 @@
       }
 
       function saveAsciiArt() {
-        html2canvas(document.querySelector('#ascii-art')).then(canvas => {
+        html2canvas(asciiDiv, {
+          backgroundColor: '#000'
+        }).then(canvas => {
           const link = document.createElement('a');
-          link.download = 'asciiart.png'; // Nome do arquivo.
-          link.href = canvas.toDataURL(); // Converte o canvas para uma URL de imagem.
-          link.click(); // Simula o clique para baixar.
-        });
-      }
-
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js').then(() => {
-          console.log('Service Worker Registered');
+          link.download = 'ascii-art.png';
+          link.href = canvas.toDataURL();
+          link.click();
+        }).catch(error => {
+          console.error('Error saving ASCII art:', error);
         });
       }
     </script>
 </body>
 </html>
-
-
