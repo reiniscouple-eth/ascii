@@ -152,7 +152,7 @@
       function saveAsciiArt() {
         html2canvas(document.querySelector('#ascii-art')).then(canvas => {
           const link = document.createElement('a');
-          link.download = 'ascii-art.png'; // Nome do arquivo.
+          link.download = 'asciiart.png'; // Nome do arquivo.
           link.href = canvas.toDataURL(); // Converte o canvas para uma URL de imagem.
           link.click(); // Simula o clique para baixar.
         });
