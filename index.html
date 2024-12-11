@@ -151,12 +151,29 @@
       }
 
       function saveAsciiArt() {
-        html2canvas(document.querySelector('#ascii-art')).then(canvas => {
-          const link = document.createElement('a');
-          link.download = 'ascii-art.png';
-          link.href = canvas.toDataURL();
-          link.click();
-        });
+        const asciiArtElement = document.querySelector('#ascii-art');
+        if (asciiArtElement) {
+          html2canvas(asciiArtElement, { backgroundColor: null }).then(canvas => {
+            // Converte o canvas para uma URL de imagem
+            const imageURL = canvas.toDataURL('image/png');
+
+            // Cria um link temporário para forçar o download
+            const link = document.createElement('a');
+            link.download = 'ascii-art.png'; // Nome do arquivo de download
+            link.href = imageURL;
+
+            // Simula o clique para iniciar o download
+            document.body.appendChild(link);
+            link.click();
+
+            // Remove o link temporário
+            document.body.removeChild(link);
+          }).catch(error => {
+            console.error('Erro ao capturar o ASCII Art:', error);
+          });
+        } else {
+          console.error('Elemento ASCII Art não encontrado!');
+        }
       }
 
       if ('serviceWorker' in navigator) {
@@ -167,3 +184,4 @@
     </script>
 </body>
 </html>
+
