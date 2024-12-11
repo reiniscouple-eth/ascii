@@ -1,187 +1,34 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>YOU by Reiniscouple</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.1/p5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.1/addons/p5.sound.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#000000">
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
+function saveAsciiArt() {
+  const asciiArtElement = document.querySelector('#ascii-art');
+  if (asciiArtElement) {
+    html2canvas(asciiArtElement, {
+      backgroundColor: '#000', // Define explicitamente um fundo para evitar problemas de transparência
+      useCORS: true // Garante que elementos externos, como fontes, sejam carregados corretamente
+    }).then(canvas => {
+      try {
+        // Converte o canvas para uma URL de imagem
+        const imageURL = canvas.toDataURL('image/png');
 
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        font-family: monospace;
-        background: linear-gradient(135deg, #000, #222);
-        color: #fff;
+        // Cria um link temporário para forçar o download
+        const link = document.createElement('a');
+        link.download = 'ascii-art.png'; // Nome do arquivo de download
+        link.href = imageURL;
+
+        // Simula o clique para iniciar o download
+        document.body.appendChild(link);
+        link.click();
+
+        // Remove o link temporário
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error('Erro ao baixar a imagem ASCII:', error);
       }
-      canvas {
-        display: block;
-      }
-      .controls {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        z-index: 10;
-      }
-      .controls select, .controls button {
-        margin: 5px;
-        padding: 10px;
-        font-size: 14px;
-        border: none;
-        border-radius: 5px;
-        background-color: #333;
-        color: #fff;
-        cursor: pointer;
-      }
-    </style>
-</head>
-<body>
-    <div class="controls">
-        <select id="cameraSelect"></select>
-        <button id="captureButton">Save ASCII Art</button>
-    </div>
+    }).catch(error => {
+      console.error('Erro ao capturar a arte ASCII com html2canvas:', error);
+    });
+  } else {
+    console.error('Elemento ASCII Art não encontrado!');
+  }
+}
 
-    <main id="ascii-art"></main>
-
-    <script>
-      const density = ' .:-=+*#%@█';
-      const FONT_SIZE = 8;
-      const ASPECT_RATIO = 2;
-      let video;
-      let asciiDiv;
-      let selectedDeviceId = null;
-
-      async function getCameraDevices() {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        const cameraSelect = document.getElementById('cameraSelect');
-        cameraSelect.innerHTML = '';
-        videoDevices.forEach((device, index) => {
-          const option = document.createElement('option');
-          option.value = device.deviceId;
-          option.text = device.label || `Camera ${index + 1}`;
-          cameraSelect.appendChild(option);
-        });
-
-        if (videoDevices.length > 0) {
-          selectedDeviceId = videoDevices[0].deviceId;
-          cameraSelect.addEventListener('change', (event) => {
-            selectedDeviceId = event.target.value;
-            initializeCamera();
-          });
-        }
-      }
-
-      async function initializeCamera() {
-        if (video) video.remove();
-
-        const constraints = {
-          video: {
-            deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined
-          }
-        };
-
-        video = createCapture(constraints, () => {
-          video.size(floor(windowWidth / (FONT_SIZE / ASPECT_RATIO)), floor(windowHeight / FONT_SIZE));
-        });
-
-        video.hide();
-      }
-
-      function setup() {
-        noCanvas();
-
-        asciiDiv = createDiv();
-        asciiDiv.style('font-family', 'monospace');
-        asciiDiv.style('font-size', `${FONT_SIZE}px`);
-        asciiDiv.style('color', '#fff');
-        asciiDiv.style('line-height', '1');
-        asciiDiv.style('position', 'fixed');
-        asciiDiv.style('top', '0');
-        asciiDiv.style('left', '0');
-        asciiDiv.style('width', '100vw');
-        asciiDiv.style('height', '100vh');
-        asciiDiv.style('overflow', 'hidden');
-        asciiDiv.style('background', 'linear-gradient(135deg, #000, #222)');
-        asciiDiv.id('ascii-art');
-
-        document.getElementById('captureButton').addEventListener('click', saveAsciiArt);
-
-        getCameraDevices();
-        initializeCamera();
-
-        window.addEventListener('resize', calculateResolution);
-      }
-
-      function draw() {
-        if (!video) return;
-
-        video.loadPixels();
-        let asciiImage = '';
-        const len = density.length;
-
-        for (let j = 0; j < video.height; j++) {
-          for (let i = 0; i < video.width; i++) {
-            const pixelIndex = (i + j * video.width) * 4;
-            const r = video.pixels[pixelIndex];
-            const g = video.pixels[pixelIndex + 1];
-            const b = video.pixels[pixelIndex + 2];
-            const avg = (r + g + b) / 3;
-            const charIndex = floor(map(avg, 0, 255, 0, len - 1));
-            const c = density.charAt(charIndex);
-            asciiImage += c === ' ' ? '&nbsp;' : c;
-          }
-          asciiImage += '<br/>';
-        }
-
-        asciiDiv.html(asciiImage);
-      }
-
-      function calculateResolution() {
-        if (video) {
-          const cols = floor(windowWidth / (FONT_SIZE / ASPECT_RATIO));
-          const rows = floor(windowHeight / FONT_SIZE);
-          video.size(cols, rows);
-        }
-      }
-
-      function saveAsciiArt() {
-        const asciiArtElement = document.querySelector('#ascii-art');
-        if (asciiArtElement) {
-          html2canvas(asciiArtElement, { backgroundColor: null }).then(canvas => {
-            // Converte o canvas para uma URL de imagem
-            const imageURL = canvas.toDataURL('image/png');
-
-            // Cria um link temporário para forçar o download
-            const link = document.createElement('a');
-            link.download = 'ascii-art.png'; // Nome do arquivo de download
-            link.href = imageURL;
-
-            // Simula o clique para iniciar o download
-            document.body.appendChild(link);
-            link.click();
-
-            // Remove o link temporário
-            document.body.removeChild(link);
-          }).catch(error => {
-            console.error('Erro ao capturar o ASCII Art:', error);
-          });
-        } else {
-          console.error('Elemento ASCII Art não encontrado!');
-        }
-      }
-
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js').then(() => {
-          console.log('Service Worker Registered');
-        });
-      }
-    </script>
-</body>
-</html>
 
