@@ -50,11 +50,20 @@
 <body>
     <div id="controls">
         <select id="cameraSelect"></select>
+        <select id="densitySelect">
+            <option value=" .:-=+*#%@█">Default</option>
+            <option value=" .`-+*=@#">Smooth</option>
+            <option value=" `^",:;Il!i~+_-?][}{1)(|\\/*tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$">Intense</option>
+            <option value=" .,:;ox%#@">Retro</option>
+            <option value=" 0123456789">Numeric</option>
+            <option value=" abcdefghijklmnopqrstuvwxyz">Alphabet</option>
+            <option value=" ░▒▓█">Blocks</option>
+        </select>
         <button id="saveAsciiArt">Save ASCII Art</button>
     </div>
     <main id="ascii-art"></main>
     <script>
-      const density = ' .`-+*=@#'; //minimalist style
+      let density = ' .:-=+*#%@█';
       const FONT_SIZE = 8;
       const ASPECT_RATIO = 2;
       let video;
@@ -106,6 +115,11 @@
         initializeCamera();
 
         document.getElementById('saveAsciiArt').addEventListener('click', saveAsciiArt);
+
+        const densitySelect = document.getElementById('densitySelect');
+        densitySelect.addEventListener('change', (event) => {
+          density = event.target.value;
+        });
 
         window.addEventListener('resize', calculateResolution);
       }
@@ -159,3 +173,4 @@
     </script>
 </body>
 </html>
+
