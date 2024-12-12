@@ -9,31 +9,33 @@ ASCII Selfie Generator:
 
 Create ASCII images using the front camera.
 Perfect for unique and personalized PFPs.
-Expanded to General ASCII Art:
 
+Expanded to General ASCII Art:
 Use any camera on your device.
 Transform live video into diverse ASCII art.
+
 Simple Web App:
-
 Works as a PWA (Progressive Web App).
-Can be installed on your phone to run in full screen without browser bars.
-Customization Options:
 
+Customization Options:
 Choose different character density palettes.
 Support for saving the generated art as PNG images.
+
 Technologies Used
 HTML: Project structure.
 CSS: Responsive and minimalist styling.
 p5.js: JavaScript library for video manipulation and ASCII art generation.
+
 How to Use
 Access the app in a compatible browser.
 Select the camera you want to use (front or rear).
 Customize the character density to adjust the visual style.
 View the result in real-time and save the generated art.
+
 Installation
 Access the hosted project (or set up a local server).
 In the browser, select the option to install the app on your home screen.
-Once installed, the app will run in full screen, like a native application.
+
 Contributions
 Contributions are welcome! Feel free to send suggestions, report issues, or fork the project.
 
